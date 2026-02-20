@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Review — Liquid Glass</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    perspective: 900px;
+    /* High-quality photo background — Unsplash source */
+    background: #0a0a0a;
+  }
+
+  .bg-image {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90&auto=format')
+      center/cover no-repeat;
+    /* Slightly darken so white text on glass is readable */
+    filter: brightness(0.85);
+  }
+
+  /* === THE GLASS — actually transparent === */
+  .wrap {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .card {
+    --r: 28px;
+    width: min(440px, 92vw);
+    padding: 28px 26px 24px;
+    border-radius: var(--r);
+    position: relative;
+
+    /*
+      THE KEY: extremely low background opacity.
+      The photo MUST be clearly visible through the card.
+      Blur distorts it slightly — like looking through real frosted glass.
+    */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px) saturate(1.6) brightness(1.05);
+    -webkit-backdrop-filter: blur(16px) saturate(1.6) brightness(1.05);
+    overflow: hidden;
+  }
+
+  /* Bright illuminated glass edge */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r);
+    padding: 1.2px;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.65) 0%,
+      rgba(255, 255, 255, 0.12) 25%,
+      rgba(200, 230, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.08) 75%,
+      rgba(255, 255, 255, 0.5) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Outer soft glow */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: calc(var(--r) + 3px);
+    box-shadow:
+      0 0 20px rgba(255, 255, 255, 0.06),
+      0 0 60px rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Top specular — tracks mouse via JS */
+  .specular {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r);
+    pointer-events: none;
+    z-index: 3;
+    transition: background 0.15s ease;
+  }
+
+  /* Inner glass depth */
+  .depth {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+      inset 0 15px 30px -15px rgba(255, 255, 255, 0.06),
+      inset 0 -15px 30px -15px rgba(0, 0, 0, 0.08);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Drop shadow */
+  .shadow {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r);
+    box-shadow:
+      0 20px 50px -10px rgba(0, 0, 0, 0.45),
+      0 10px 20px -5px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: -1;
+    transition: box-shadow 0.4s ease;
+  }
+
+  .wrap:hover .shadow {
+    box-shadow:
+      0 28px 60px -10px rgba(0, 0, 0, 0.5),
+      0 14px 28px -5px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Caustic shimmer on hover */
+  .caustic {
+    position: absolute;
+    inset: -1px;
+    border-radius: calc(var(--r) + 1px);
+    background: conic-gradient(
+      from 200deg,
+      rgba(255, 120, 120, 0.05),
+      rgba(255, 220, 100, 0.05),
+      rgba(100, 255, 160, 0.05),
+      rgba(100, 190, 255, 0.07),
+      rgba(190, 110, 255, 0.05),
+      rgba(255, 120, 120, 0.05)
+    );
+    filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    z-index: 4;
+  }
+
+  .wrap:hover .caustic { opacity: 1; }
+
+  /* Sweep */
+  .sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r);
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .sweep::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 50%;
+    height: 200%;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.12) 46%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.12) 54%, transparent 70%);
+    transform: rotate(20deg);
+    opacity: 0;
+  }
+
+  .wrap:hover .sweep::before {
+    animation: sw 0.75s ease-out forwards;
+  }
+
+  @keyframes sw {
+    0% { left: -100%; opacity: 1; }
+    100% { left: 180%; opacity: 0; }
+  }
+
+  /* === CONTENT === */
+  .content {
+    position: relative;
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .gpill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px 5px 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+  }
+
+  .gi {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: conic-gradient(#4285F4 0 25%, #34A853 25% 50%, #FBBC05 50% 75%, #EA4335 75% 100%);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .gt {
+    font-size: 11px;
+    font-weight: 550;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.02em;
+  }
+
+  .biz {
+    font-size: clamp(1.08rem, 1rem + 0.3vw, 1.25rem);
+    font-weight: 650;
+    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: -0.015em;
+    margin-bottom: 12px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 14px;
+  }
+
+  .stars { display: flex; gap: 1px; }
+
+  .star {
+    font-size: 16px;
+    color: #FFD54F;
+    filter: drop-shadow(0 0 4px rgba(255,200,40,0.4));
+  }
+
+  .rat {
+    font-size: 14px;
+    font-weight: 620;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  .date {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .reviewer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .av {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(100,160,255,0.5), rgba(180,100,255,0.5));
+    border: 1px solid rgba(255,255,255,0.2);
+    display: grid;
+    place-items: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .rmeta { display: flex; flex-direction: column; gap: 1px; }
+  .rname { font-size: 13.5px; font-weight: 580; color: rgba(255,255,255,0.9); }
+  .rsub { font-size: 11px; color: rgba(255,255,255,0.45); }
+
+  .rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12) 20%, rgba(255,255,255,0.12) 80%, transparent);
+    margin-bottom: 14px;
+  }
+
+  .body {
+    font-size: clamp(0.91rem, 0.87rem + 0.16vw, 0.99rem);
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 22px 20px 20px; --r: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-image"></div>
+
+<div class="wrap" id="w">
+  <div class="shadow"></div>
+  <article class="card">
+    <div class="specular" id="spec"></div>
+    <div class="depth"></div>
+    <div class="caustic"></div>
+    <div class="sweep"></div>
+
+    <div class="content">
+      <div class="header">
+        <div class="gpill">
+          <div class="gi">G</div>
+          <span class="gt">Google Review</span>
+        </div>
+      </div>
+
+      <h1 class="biz">North Shore Ignition &amp; Interlock</h1>
+
+      <div class="meta">
+        <div class="stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <span class="rat">5.0</span>
+        <span class="dot"></span>
+        <span class="date">January 2026</span>
+      </div>
+
+      <div class="reviewer">
+        <div class="av">M</div>
+        <div class="rmeta">
+          <span class="rname">Maya R.</span>
+          <span class="rsub">Local Guide</span>
+        </div>
+      </div>
+
+      <div class="rule"></div>
+
+      <p class="body">
+        Incredibly professional and fast. They explained everything clearly, got me in the same day, and the install looks factory-clean. Follow-up support was outstanding—felt like they actually cared. Highly recommend.
+      </p>
+    </div>
+  </article>
+</div>
+
+<script>
+  const w = document.getElementById('w');
+  const spec = document.getElementById('spec');
+
+  w.addEventListener('mousemove', (e) => {
+    const r = w.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    const rx = (y - 0.5) * -6;
+    const ry = (x - 0.5) * 6;
+    w.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+    spec.style.background = `radial-gradient(ellipse 100% 80% at ${x*100}% ${y*80}%, rgba(255,255,255,0.12), transparent 60%)`;
+  });
+
+  w.addEventListener('mouseleave', () => {
+    w.style.transform = '';
+    spec.style.background = '';
+  });
+</script>
+
+</body>
+</html>
