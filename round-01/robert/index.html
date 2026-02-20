@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Round 01 — Robert</title>
+  <style>
+    :root{
+      --bg-0:#060a14;
+      --bg-1:#0c1b35;
+      --bg-2:#163057;
+      --bg-3:#1e3f68;
+      --txt:#eef5ff;
+      --muted:#c4d4f3;
+      --line:rgba(255,255,255,.36);
+      --glass:rgba(230,241,255,.12);
+      --glass-2:rgba(255,255,255,.06);
+      --glow:rgba(148,203,255,.26);
+      --shadow:rgba(2,7,16,.62);
+      --star:#ffd56a;
+      --radius:34px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:var(--txt);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      background:
+        radial-gradient(1100px 700px at 10% 18%, #2e4f82 0%, transparent 58%),
+        radial-gradient(900px 640px at 88% 14%, #1c3f77 0%, transparent 56%),
+        radial-gradient(980px 760px at 50% 104%, #223d66 0%, transparent 60%),
+        linear-gradient(150deg,var(--bg-0),var(--bg-1) 30%,var(--bg-2) 65%,var(--bg-3));
+      position:relative;
+      isolation:isolate;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    /* bokeh blobs */
+    body::before{
+      content:"";
+      position:absolute;
+      inset:-24%;
+      background:
+        radial-gradient(circle at 14% 30%, rgba(180,222,255,.22), transparent 18%),
+        radial-gradient(circle at 72% 20%, rgba(144,208,255,.19), transparent 17%),
+        radial-gradient(circle at 80% 70%, rgba(121,191,255,.17), transparent 16%),
+        radial-gradient(circle at 30% 78%, rgba(204,230,255,.12), transparent 18%);
+      filter:blur(42px);
+      animation:float 18s ease-in-out infinite alternate;
+      z-index:-2;
+      pointer-events:none;
+    }
+
+    /* subtle noise */
+    body::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:radial-gradient(rgba(255,255,255,.06) .7px, transparent .7px);
+      background-size:2.1px 2.1px;
+      opacity:.16;
+      mix-blend-mode:soft-light;
+      pointer-events:none;
+      z-index:-1;
+    }
+
+    .card{
+      width:min(92vw, 620px);
+      border-radius:var(--radius);
+      padding:24px 24px 22px;
+      position:relative;
+      overflow:hidden;
+      background:
+        linear-gradient(165deg, rgba(255,255,255,.24) 0%, rgba(255,255,255,.11) 30%, rgba(186,219,255,.08) 58%, rgba(255,255,255,.03) 100%),
+        linear-gradient(115deg, var(--glass), var(--glass-2));
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter:blur(34px) saturate(160%) contrast(108%);
+      -webkit-backdrop-filter:blur(34px) saturate(160%) contrast(108%);
+      box-shadow:
+        0 34px 90px -34px var(--shadow),
+        0 0 0 1px rgba(255,255,255,.06) inset,
+        0 1px 0 rgba(255,255,255,.54) inset,
+        0 -24px 56px -40px var(--glow) inset,
+        0 16px 42px -28px rgba(127,191,255,.22);
+      transition:transform .32s ease, box-shadow .35s ease;
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      padding:1.1px;
+      background:linear-gradient(140deg, rgba(255,255,255,.72), rgba(255,255,255,.18) 32%, rgba(146,212,255,.45) 63%, rgba(255,255,255,.4));
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;
+      mask-composite:exclude;
+      pointer-events:none;
+      opacity:.95;
+    }
+
+    /* specular highlight + moving sheen */
+    .card::after{
+      content:"";
+      position:absolute;
+      top:-58%;
+      left:-42%;
+      width:185%;
+      height:205%;
+      background:
+        linear-gradient(106deg,
+          transparent 26%,
+          rgba(255,255,255,.02) 35%,
+          rgba(255,255,255,.23) 46%,
+          rgba(255,255,255,.07) 52%,
+          transparent 63%);
+      transform:translateX(-12%) rotate(1.2deg);
+      transition:transform .9s cubic-bezier(.16,.84,.2,1);
+      pointer-events:none;
+    }
+
+    .card:hover{
+      transform:translateY(-3px);
+      box-shadow:
+        0 40px 98px -34px var(--shadow),
+        0 0 0 1px rgba(255,255,255,.07) inset,
+        0 1px 0 rgba(255,255,255,.58) inset,
+        0 -28px 64px -42px rgba(151,213,255,.34) inset,
+        0 20px 48px -28px rgba(134,202,255,.28);
+    }
+    .card:hover::after{ transform:translateX(26%) rotate(1.2deg); }
+
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .google-label{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:12px;font-weight:560;letter-spacing:.2px;
+      color:#d7e7ff;background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:999px;padding:7px 12px;
+      box-shadow:0 1px 0 rgba(255,255,255,.2) inset;
+    }
+
+    .g{
+      width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+      font-size:16px;font-weight:700;color:#fff;
+      background:conic-gradient(#4285F4 0 25%, #34A853 25% 50%, #FBBC05 50% 75%, #EA4335 75% 100%);
+      text-shadow:0 1px 2px rgba(0,0,0,.3);
+      box-shadow:0 8px 16px -8px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.25) inset;
+      flex-shrink:0;
+    }
+
+    h1{margin:0 0 7px;font-size:clamp(1.08rem,1rem + .42vw,1.33rem);line-height:1.2;font-weight:650;letter-spacing:-.01em}
+    .meta{display:flex;align-items:center;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:.92rem;margin-bottom:14px}
+    .stars{font-size:.95rem;letter-spacing:.12em;background:linear-gradient(180deg,#ffe9a6,#f7bf3f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 6px rgba(255,209,92,.25))}
+    .score{font-weight:640;color:#e9f3ff}
+    .dot{width:4px;height:4px;border-radius:50%;background:rgba(219,232,255,.6)}
+
+    .reviewer-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .avatar{
+      width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+      font-size:13px;font-weight:680;
+      color:#edf6ff;
+      background:linear-gradient(145deg, rgba(255,255,255,.32), rgba(124,180,236,.25));
+      border:1px solid rgba(255,255,255,.22);
+      box-shadow:0 1px 0 rgba(255,255,255,.3) inset;
+    }
+    .reviewer{font-size:.95rem;color:#dbe9ff;font-weight:600}
+
+    .text{margin:0;color:#f3f8ff;font-size:clamp(.98rem,.92rem + .2vw,1.04rem);line-height:1.6;text-wrap:pretty}
+
+    @media (max-width:560px){
+      .card{padding:20px 18px 18px;border-radius:28px}
+      .g{width:26px;height:26px;font-size:14px}
+      .google-label{font-size:11px;padding:6px 10px}
+    }
+
+    @keyframes float{
+      0%{transform:translate3d(0,0,0) scale(1)}
+      100%{transform:translate3d(1.5%, -1.5%, 0) scale(1.04)}
+    }
+  </style>
+</head>
+<body>
+  <article class="card" aria-label="Google review card">
+    <div class="top">
+      <span class="google-label">Google Review</span>
+      <span class="g" aria-hidden="true">G</span>
+    </div>
+
+    <h1>North Shore Ignition &amp; Interlock</h1>
+
+    <div class="meta">
+      <span class="stars" aria-label="5 stars">★★★★★</span>
+      <span class="score">5.0</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span>January 2026</span>
+    </div>
+
+    <div class="reviewer-wrap">
+      <span class="avatar" aria-hidden="true">M</span>
+      <span class="reviewer">Maya R.</span>
+    </div>
+
+    <p class="text">Incredibly professional and fast. They explained everything clearly, got me in the same day, and the install looks factory-clean. Follow-up support was outstanding—felt like they actually cared. Highly recommend.</p>
+  </article>
+</body>
+</html>
