@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Review — North Shore Ignition & Interlock</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #0b1020;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* === BACKGROUND — richer, more visible through glass === */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 30%, rgba(56, 100, 220, 0.4), transparent),
+      radial-gradient(ellipse 70% 50% at 75% 65%, rgba(130, 70, 210, 0.35), transparent),
+      radial-gradient(ellipse 50% 40% at 50% 80%, rgba(30, 90, 190, 0.3), transparent),
+      linear-gradient(160deg, #0b1020 0%, #1b2a4f 40%, #0d1225 100%);
+  }
+
+  /* Bokeh — larger, brighter so they show through the glass */
+  .bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle 280px at 18% 28%, rgba(90, 160, 255, 0.22), transparent),
+      radial-gradient(circle 200px at 78% 22%, rgba(170, 90, 255, 0.18), transparent),
+      radial-gradient(circle 320px at 55% 72%, rgba(70, 120, 250, 0.16), transparent),
+      radial-gradient(circle 160px at 40% 65%, rgba(130, 70, 230, 0.12), transparent),
+      radial-gradient(circle 120px at 88% 55%, rgba(90, 170, 255, 0.14), transparent);
+    animation: bokeh-drift 18s ease-in-out infinite alternate;
+  }
+
+  /* Noise */
+  .bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+  }
+
+  @keyframes bokeh-drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-12px, 8px) scale(1.02); }
+  }
+
+  /* === CARD — true clear glass, not tinted plastic === */
+  .card {
+    --radius: 30px;
+    position: relative;
+    z-index: 1;
+    width: min(440px, 92vw);
+    padding: 28px 26px 24px;
+    border-radius: var(--radius);
+    /* KEY FIX: much lower opacity — let the bg bleed through */
+    background:
+      linear-gradient(165deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04) 45%, rgba(200, 220, 255, 0.06));
+    backdrop-filter: blur(32px) saturate(1.5) contrast(1.04);
+    -webkit-backdrop-filter: blur(32px) saturate(1.5) contrast(1.04);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+      0 24px 60px -18px rgba(4, 8, 20, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+      0 1px 0 rgba(255, 255, 255, 0.45) inset,
+      0 -18px 40px -28px rgba(150, 200, 255, 0.2) inset;
+    overflow: hidden;
+    cursor: default;
+    transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.35s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 28px 70px -20px rgba(4, 8, 20, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+      0 1px 0 rgba(255, 255, 255, 0.5) inset,
+      0 -22px 50px -28px rgba(160, 210, 255, 0.3) inset;
+  }
+
+  /* Illuminated glass edge — bright rim with gradient */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    padding: 1.2px;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.12) 30%,
+      rgba(120, 190, 255, 0.3) 65%,
+      rgba(255, 255, 255, 0.45) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  /* Specular highlight — top refraction streak */
+  .highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 45%;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: linear-gradient(
+      178deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.03) 40%,
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  /* Sheen sweep on hover */
+  .sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .sheen::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -120%;
+    width: 70%;
+    height: 250%;
+    background: linear-gradient(
+      105deg,
+      transparent 38%,
+      rgba(255, 255, 255, 0.08) 44%,
+      rgba(255, 255, 255, 0.14) 50%,
+      rgba(255, 255, 255, 0.08) 56%,
+      transparent 62%
+    );
+    transform: rotate(25deg);
+    opacity: 0;
+  }
+
+  .card:hover .sheen::before {
+    animation: sweep 0.7s ease-out forwards;
+  }
+
+  @keyframes sweep {
+    0% { left: -120%; opacity: 1; }
+    100% { left: 200%; opacity: 0; }
+  }
+
+  /* === CONTENT === */
+  .content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .google-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 6px 14px 6px 8px;
+    backdrop-filter: blur(8px);
+  }
+
+  .g-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: conic-gradient(#4285F4 0 25%, #34A853 25% 50%, #FBBC05 50% 75%, #EA4335 75% 100%);
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    flex-shrink: 0;
+  }
+
+  .g-label {
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(220, 230, 255, 0.8);
+    white-space: nowrap;
+  }
+
+  .biz-name {
+    font-size: clamp(1.05rem, 1rem + 0.3vw, 1.22rem);
+    font-weight: 640;
+    color: rgba(240, 246, 255, 0.95);
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 0.92rem;
+    color: rgba(185, 200, 230, 0.85);
+  }
+
+  .stars {
+    display: flex;
+    gap: 1px;
+    font-size: 17px;
+    letter-spacing: 0.04em;
+  }
+
+  .star {
+    background: linear-gradient(135deg, #FFD15C, #F5A623);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 4px rgba(255, 200, 50, 0.35));
+  }
+
+  .rating-num {
+    font-weight: 620;
+    color: rgba(230, 240, 255, 0.9);
+  }
+
+  .dot {
+    width: 3.5px;
+    height: 3.5px;
+    border-radius: 50%;
+    background: rgba(200, 215, 240, 0.45);
+  }
+
+  .reviewer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(90, 150, 255, 0.35), rgba(160, 90, 255, 0.35));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: grid;
+    place-items: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgba(230, 240, 255, 0.8);
+  }
+
+  .reviewer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .reviewer-name {
+    font-size: 13.5px;
+    font-weight: 580;
+    color: rgba(220, 232, 255, 0.9);
+  }
+
+  .review-date {
+    font-size: 11.5px;
+    color: rgba(180, 195, 225, 0.55);
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 15%, rgba(255, 255, 255, 0.1) 85%, transparent 100%);
+    margin-bottom: 16px;
+  }
+
+  .review-text {
+    font-size: clamp(0.93rem, 0.88rem + 0.2vw, 1.01rem);
+    line-height: 1.62;
+    color: rgba(240, 246, 255, 0.82);
+    text-wrap: pretty;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 480px) {
+    .card {
+      padding: 22px 20px 20px;
+      --radius: 26px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<article class="card" aria-label="Google review card">
+  <div class="highlight"></div>
+  <div class="sheen"></div>
+
+  <div class="content">
+    <div class="header">
+      <div class="google-badge">
+        <div class="g-icon">G</div>
+        <span class="g-label">Google Review</span>
+      </div>
+    </div>
+
+    <h1 class="biz-name">North Shore Ignition &amp; Interlock</h1>
+
+    <div class="meta">
+      <div class="stars">
+        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+      </div>
+      <span class="rating-num">5.0</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span>January 2026</span>
+    </div>
+
+    <div class="reviewer-row">
+      <div class="avatar">M</div>
+      <div class="reviewer-info">
+        <span class="reviewer-name">Maya R.</span>
+        <span class="review-date">Local Guide</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="review-text">
+      Incredibly professional and fast. They explained everything clearly, got me in the same day, and the install looks factory-clean. Follow-up support was outstanding—felt like they actually cared. Highly recommend.
+    </p>
+  </div>
+</article>
+
+</body>
+</html>
